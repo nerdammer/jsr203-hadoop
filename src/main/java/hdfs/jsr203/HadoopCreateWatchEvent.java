@@ -15,35 +15,65 @@
  */
 package hdfs.jsr203;
 
-import java.nio.file.Path;
 import java.nio.file.WatchEvent;
+import java.util.Objects;
+
+import javax.annotation.Nullable;
 
 /**
  * Implementation for {@link WatchEvent}.
  */
-public class HadoopCreateWatchEvent implements WatchEvent<Path> {
+public class HadoopCreateWatchEvent<T> implements WatchEvent<T> {
 
-  private Path path;
-  private java.nio.file.WatchEvent.Kind<Path> kind;
+  private final Kind<T> kind;
+  private final int count;
 
-  HadoopCreateWatchEvent(Path path, WatchEvent.Kind<Path> kind) {
-    this.path = path;
+  private final T context;
+
+  public HadoopCreateWatchEvent(Kind<T> kind, int count, T context) {
     this.kind = kind;
+    this.count = count;
+    this.context = context;
   }
 
   @Override
-  public WatchEvent.Kind<Path> kind() {
-    return this.kind;
+  public Kind<T> kind() {
+    return kind;
   }
 
   @Override
   public int count() {
-    return 1;
+    return count;
+  }
+
+  @Nullable
+  @Override
+  public T context() {
+    return context;
   }
 
   @Override
-  public Path context() {
-    return this.path;
+  public boolean equals(Object obj) {
+    if (obj instanceof HadoopCreateWatchEvent) {
+      HadoopCreateWatchEvent<?> other = (HadoopCreateWatchEvent<?>) obj;
+      return kind().equals(other.kind())
+          && count() == other.count()
+          && Objects.equals(context(), other.context());
+    }
+    return false;
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hash(kind(), count(), context());
+  }
+
+  @Override
+  public String toString() {
+    return new StringBuilder().append(this.getClass().getName())
+        .append(", kind" + kind())
+        .append(", count" + count())
+        .append(", context" + context())
+        .toString();
+  }
 }

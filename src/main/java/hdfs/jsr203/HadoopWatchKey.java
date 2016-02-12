@@ -14,6 +14,9 @@
  * the License.
  */
 package hdfs.jsr203;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
 import java.io.IOException;
 import java.net.URI;
@@ -95,16 +98,14 @@ public class HadoopWatchKey implements WatchKey {
       AppendEvent appendEvent = (AppendEvent) event;
       HadoopPath hadoopAppendPath = new HadoopPath(path.getFileSystem(),
           appendEvent.getPath().getBytes());
-      ls.add(new HadoopCreateWatchEvent(hadoopAppendPath,
-          StandardWatchEventKinds.ENTRY_MODIFY));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_MODIFY, 1, hadoopAppendPath));
       break;
     case CREATE:
       // Create events are OK
       CreateEvent createEvent = (CreateEvent) event;
       HadoopPath hadoopPath = new HadoopPath(path.getFileSystem(),
           createEvent.getPath().getBytes());
-      ls.add(new HadoopCreateWatchEvent(path.relativize(hadoopPath),
-          StandardWatchEventKinds.ENTRY_CREATE));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_CREATE, 1, path.relativize(hadoopPath)));
       break;
     case CLOSE:
       // Java 1.7 doesn't manage "CLOSE" event
@@ -112,8 +113,7 @@ public class HadoopWatchKey implements WatchKey {
       CloseEvent closeEvent = (CloseEvent) event;
       HadoopPath hadoopClosePath = new HadoopPath(path.getFileSystem(),
           closeEvent.getPath().getBytes());
-      ls.add(new HadoopCreateWatchEvent(hadoopClosePath,
-          StandardWatchEventKinds.ENTRY_MODIFY));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_MODIFY, 1, hadoopClosePath));
       break;
     case METADATA:
       // Java 1.7 doesn't manage "METADATA" event
@@ -121,8 +121,7 @@ public class HadoopWatchKey implements WatchKey {
       MetadataUpdateEvent metadataEvent = (MetadataUpdateEvent) event;
       HadoopPath hadoopMetadataPath = new HadoopPath(path.getFileSystem(),
           metadataEvent.getPath().getBytes());
-      ls.add(new HadoopCreateWatchEvent(hadoopMetadataPath,
-          StandardWatchEventKinds.ENTRY_MODIFY));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_MODIFY, 1, hadoopMetadataPath));
       break;
     case RENAME:
       // Java 1.7 doesn't manage "RENAME" event
@@ -132,10 +131,8 @@ public class HadoopWatchKey implements WatchKey {
           renameEvent.getSrcPath().getBytes());
       HadoopPath hadoopRenameDstPath = new HadoopPath(path.getFileSystem(),
           renameEvent.getDstPath().getBytes());
-      ls.add(new HadoopCreateWatchEvent(hadoopRenameSrcPath,
-          StandardWatchEventKinds.ENTRY_DELETE));
-      ls.add(new HadoopCreateWatchEvent(hadoopRenameDstPath,
-          StandardWatchEventKinds.ENTRY_CREATE));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_DELETE, 1, hadoopRenameSrcPath));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_CREATE, 1, hadoopRenameDstPath));
       break;
     case UNLINK:
       // Java 1.7 doesn't manage "UNLINK" event
@@ -143,8 +140,7 @@ public class HadoopWatchKey implements WatchKey {
       UnlinkEvent unlinkEvent = (UnlinkEvent) event;
       HadoopPath hadoopUnlinkPath = new HadoopPath(path.getFileSystem(),
           unlinkEvent.getPath().getBytes());
-      ls.add(new HadoopCreateWatchEvent(hadoopUnlinkPath,
-          StandardWatchEventKinds.ENTRY_MODIFY));
+      ls.add(new HadoopCreateWatchEvent<>(ENTRY_MODIFY, 1, hadoopUnlinkPath));
       break;
     default:
       System.err.println("Eventype not know: " + event.getEventType().name());
